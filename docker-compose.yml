@@ -1,0 +1,54 @@
+version: '3.7'
+
+services:
+    nest_free:
+        container_name: nest_free
+        build:
+            context: .
+        volumes:
+            - .:/usr/src/app
+            - /usr/src/app/node_modules
+        ports:
+            - 3000:3000
+        command: npm run start:dev
+        env_file:
+            - .env
+        networks:
+            - free_nest
+        depends_on:
+            - nest_postgres
+
+    nest_postgres:
+        container_name: nest_postgres
+        image: postgres:12
+        networks:
+            - free_nest
+        environment:
+            POSTGRES_PASSWORD: nest
+            POSTGRES_DB: nest
+            PG_DATA: /var/lib/postgresql/data
+        ports:
+            - 5432:5432
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+
+    nest_adminer:
+        image: adminer
+        restart: always
+        networks:
+            - free_nest
+        depends_on:
+          - nest_postgres
+        environment:
+            ADMINER_DEFAULT_DB_DRIVER: pgsql
+            ADMINER_DEFAULT_DB_HOST: nest_postgres
+            ADMINER_DEFAULT_DB_NAME: nest
+            ADMINER_DESIGN: nette
+            ADMINER_PLUGINS: tables-filter tinymce
+        ports:
+            - 8086:8080
+networks:
+    free_nest:
+        name: free_nest
+volumes:
+    pgdata:
